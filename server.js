@@ -1,40 +1,43 @@
-const fs = require('fs')
-const Vue = require('vue')
+/**
+ * @author: zhangzhulei(zhangzhulei@baidu.com)
+ * @file: 启动文件
+ * @date: Do not edit
+ */
+const path = require('path')
 const express = require('express')
-const path = require("path");
-const renderer = require('vue-server-renderer').createRenderer({
-    template: fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8')  // 读取html文件
-})
+const fs = require('fs')
+const { createBundleRenderer } = require('vue-server-renderer')
+
+const serverBundle = require('./dist/vue-ssr-server-bundle.json')
+const template = fs.readFileSync('./index.html', 'utf-8')
+const clientManifest = require('./dist/vue-ssr-client-manifest.json')
+
+const isProd = process.env.NODE_ENV === 'production'
+
+let renderer
+
 
 const server = express()
-// 访问 'http://localhost:3000'时渲vue示例
+
+renderer = createBundleRenderer(serverBundle, {
+    template,
+    clientManifest
+})
+
 server.get('/', (req, res) => {
-    const app = new Vue({
-        template: `
-          <div id="app">{{message}}</div>
-        `,
-        data () {
-            return {
-                message: 'hello,张朱磊'
-            }
-        }
-    })
-    // 将vue示例转换成html字符串
-    /**
-     * @app vue示例
-     * @context 插入模板的内容
-     * @cb 回调函数
-     */
-    renderer.renderToString(app, {
-        title: 'vue ssr',
-        metaContent: '<meta name="description" content="哈哈哈哈">'
+    renderer.renderToString({
+        title: '哈哈哈',
+        metaContent: '<meta name="description" content="zzl" />'
     }, (err, html) => {
-        if (err) res.status(500).end('Interval Server Error')
+        console.log(err)
+        if (err) {
+            return res.status(500).end('Internal Server Error')
+        }
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
         res.end(html)
     })
 })
 
-// 监听本地3000端口
-server.listen(3000, () => {
-    console.log(`server is running at http://localhost:3000`)
+server.listen(8080, () => {
+    console.log('server running at http://localhost:8080')
 })
